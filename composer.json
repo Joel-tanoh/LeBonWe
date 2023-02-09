@@ -1,0 +1,31 @@
+{
+    "name": "joel_carter/indice",
+    "description": "Un couplet de deux sites, un site d'annonce et un autre de e-commerce",
+    "authors": [
+        {
+            "name": "yan steeven",
+            "email": "lohouxyansteeven@outlook.com"
+        },
+        {
+            "name": "Tanoh Joel",
+            "email": "joel.developpeur@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }  
+    },
+    "require": {
+        "cocur/slugify": "^3.2",
+        "intervention/image": "^2.5",
+        "fzaninotto/faker": "^1.9"
+    },
+    "require-dev": {
+        "phploc/phploc": "^4.0",
+        "phpmd/phpmd": "^2.7",
+        "squizlabs/php_codesniffer": "*",
+        "friendsofphp/php-cs-fixer": "^2.16",
+        "phpunit/phpunit": "7"
+    }
+}
