@@ -19,14 +19,6 @@ try {
     $router = new Router(trim($_SERVER["REQUEST_URI"], "/"));
 
     $router->get("/", "App\Controller\AppController@index");
-    $router->get("/admin", "App\Controller\AdministrationController@index");
-    $router->get("/administration", "App\Controller\AdministrationController@index");
-
-    // $router->get("/test", "App\Controller\AppController@test");
-    // $router->get("/:parameter", "App\Controller\AppController@parameter");
-    // $router->post("/", "App\Controller\AppController@post");
-    // $router->post("/post", "App\Controller\AppController@post");
-    // $router->post("/:parameter", "App\Controller\AppController@parameter");
 
     $router->run();
   

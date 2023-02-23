@@ -1,20 +1,20 @@
 <?php
 
 /**
- * Fichier de configuration général de l'application ou du site.
+ * Fichier de configuration général.
  */
 
 /** Nom de l'application */
 define("APP_NAME", "lebonwe");
 
 /** Nom de la base de données */
-define("DB_NAME", "");
+define("DB_NAME", "lebonwe");
 
 /** Adresse du serveur */
 define("DB_ADDRESS", "localhost");
 
 /** Login de la base de données */
-define("DB_LOGIN", "");
+define("DB_LOGIN", "root");
 
 /** Mot de passe de connexion à la base de données */
 define("DB_PASSWORD", "");

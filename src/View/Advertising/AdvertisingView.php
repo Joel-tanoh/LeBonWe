@@ -1,10 +1,11 @@
 <?php
 
-namespace App\View;
+namespace App\View\Advertising;
 
 use App\File\Image\Image;
 use App\Model\BookLink;
 use App\Utility\AdvertisingEngine;
+use App\View\View;
 
 class AdvertisingView extends View
 {
