@@ -2,7 +2,10 @@
 
 namespace App\View;
 
+use App\View\Component\Footer\Footer;
+use App\View\Component\Navbar\Navbar;
 use App\View\Page\SideBar;
+use Faker\Guesser\Name;
 
 /**
  * Classe View. Regroupe toutes les vues de l'application.
@@ -17,11 +20,13 @@ class View
     public static function index()
     {
         $appName = APP_NAME;
+        $navbar = new Navbar();
+        $footer = new Footer();
 
         return <<<HTML
-        <div class="container">
-            <h1>Bienvenu sur {$appName}</h1>
-        </div>
+        {$navbar->getBootstrapNavbar()}
+        <div class="container">Bienvenu sur {$appName}</div>
+        {$footer->getFooter()}
 HTML;
     }
 

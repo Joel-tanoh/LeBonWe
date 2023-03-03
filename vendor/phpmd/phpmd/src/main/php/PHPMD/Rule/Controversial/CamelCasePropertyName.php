@@ -20,6 +20,7 @@ namespace PHPMD\Rule\Controversial;
 use PHPMD\AbstractNode;
 use PHPMD\AbstractRule;
 use PHPMD\Rule\ClassAware;
+use PHPMD\Rule\TraitAware;
 
 /**
  * This rule class detects properties not named in camelCase.
@@ -27,7 +28,7 @@ use PHPMD\Rule\ClassAware;
  * @author Francis Besset <francis.besset@gmail.com>
  * @since 1.1.0
  */
-class CamelCasePropertyName extends AbstractRule implements ClassAware
+class CamelCasePropertyName extends AbstractRule implements ClassAware, TraitAware
 {
     /**
      * This method checks if a property is not named in camelCase
@@ -40,9 +41,9 @@ class CamelCasePropertyName extends AbstractRule implements ClassAware
     {
         $allowUnderscore = $this->getBooleanProperty('allow-underscore');
 
-        $pattern = '/^\$[a-zA-Z][a-zA-Z0-9]*$/';
+        $pattern = '/^\$[a-z][a-zA-Z0-9]*$/';
         if ($allowUnderscore === true) {
-            $pattern = '/^\$[_]?[a-zA-Z][a-zA-Z0-9]*$/';
+            $pattern = '/^\$[_]?[a-z][a-zA-Z0-9]*$/';
         }
 
         foreach ($node->getProperties() as $property) {

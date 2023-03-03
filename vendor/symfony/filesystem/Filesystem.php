@@ -59,7 +59,7 @@ class Filesystem
             }
 
             // Stream context created to allow files overwrite when using FTP stream wrapper - disabled by default
-            if (false === $target = @fopen($targetFile, 'w', null, stream_context_create(['ftp' => ['overwrite' => true]]))) {
+            if (false === $target = @fopen($targetFile, 'w', false, stream_context_create(['ftp' => ['overwrite' => true]]))) {
                 throw new IOException(sprintf('Failed to copy "%s" to "%s" because target file could not be opened for writing.', $originFile, $targetFile), 0, null, $originFile);
             }
 
@@ -180,7 +180,7 @@ class Filesystem
                 if (!self::box('rmdir', $file) && file_exists($file)) {
                     throw new IOException(sprintf('Failed to remove directory "%s": ', $file).self::$lastError);
                 }
-            } elseif (!self::box('unlink', $file) && file_exists($file)) {
+            } elseif (!self::box('unlink', $file) && (str_contains(self::$lastError, 'Permission denied') || file_exists($file))) {
                 throw new IOException(sprintf('Failed to remove file "%s": ', $file).self::$lastError);
             }
         }
@@ -318,6 +318,8 @@ class Filesystem
      */
     public function symlink($originDir, $targetDir, $copyOnWindows = false)
     {
+        self::assertFunctionExists('symlink');
+
         if ('\\' === \DIRECTORY_SEPARATOR) {
             $originDir = strtr($originDir, '/', '\\');
             $targetDir = strtr($targetDir, '/', '\\');
@@ -354,6 +356,8 @@ class Filesystem
      */
     public function hardlink($originFile, $targetFiles)
     {
+        self::assertFunctionExists('link');
+
         if (!$this->exists($originFile)) {
             throw new FileNotFoundException(null, 0, null, $originFile);
         }
@@ -382,7 +386,7 @@ class Filesystem
     private function linkException(string $origin, string $target, string $linkType)
     {
         if (self::$lastError) {
-            if ('\\' === \DIRECTORY_SEPARATOR && false !== strpos(self::$lastError, 'error code(1314)')) {
+            if ('\\' === \DIRECTORY_SEPARATOR && str_contains(self::$lastError, 'error code(1314)')) {
                 throw new IOException(sprintf('Unable to create "%s" link due to error code 1314: \'A required privilege is not held by the client\'. Do you have the required Administrator-rights?', $linkType), 0, null, $target);
             }
         }
@@ -416,14 +420,14 @@ class Filesystem
                 return null;
             }
 
-            if ('\\' === \DIRECTORY_SEPARATOR) {
+            if ('\\' === \DIRECTORY_SEPARATOR && \PHP_VERSION_ID < 70410) {
                 $path = readlink($path);
             }
 
             return realpath($path);
         }
 
-        if ('\\' === \DIRECTORY_SEPARATOR) {
+        if ('\\' === \DIRECTORY_SEPARATOR && \PHP_VERSION_ID < 70400) {
             return realpath($path);
         }
 
@@ -474,8 +478,8 @@ class Filesystem
             return $result;
         };
 
-        list($endPath, $endDriveLetter) = $splitDriveLetter($endPath);
-        list($startPath, $startDriveLetter) = $splitDriveLetter($startPath);
+        [$endPath, $endDriveLetter] = $splitDriveLetter($endPath);
+        [$startPath, $startDriveLetter] = $splitDriveLetter($startPath);
 
         $startPathArr = $splitPath($startPath);
         $endPathArr = $splitPath($endPath);
@@ -577,7 +581,7 @@ class Filesystem
             } elseif (is_dir($file)) {
                 $this->mkdir($target);
             } elseif (is_file($file)) {
-                $this->copy($file, $target, isset($options['override']) ? $options['override'] : false);
+                $this->copy($file, $target, $options['override'] ?? false);
             } else {
                 throw new IOException(sprintf('Unable to guess "%s" file type.', $file), 0, null, $file);
             }
@@ -617,7 +621,7 @@ class Filesystem
      */
     public function tempnam($dir, $prefix)
     {
-        list($scheme, $hierarchy) = $this->getSchemeAndHierarchy($dir);
+        [$scheme, $hierarchy] = $this->getSchemeAndHierarchy($dir);
 
         // If no scheme or scheme is "file" or "gs" (Google Cloud) create temp file in local filesystem
         if (null === $scheme || 'file' === $scheme || 'gs' === $scheme) {
@@ -678,21 +682,23 @@ class Filesystem
             $this->mkdir($dir);
         }
 
-        if (!is_writable($dir)) {
-            throw new IOException(sprintf('Unable to write to the "%s" directory.', $dir), 0, null, $dir);
-        }
-
         // Will create a temp file with 0600 access rights
         // when the filesystem supports chmod.
         $tmpFile = $this->tempnam($dir, basename($filename));
 
-        if (false === @file_put_contents($tmpFile, $content)) {
-            throw new IOException(sprintf('Failed to write file "%s".', $filename), 0, null, $filename);
+        try {
+            if (false === @file_put_contents($tmpFile, $content)) {
+                throw new IOException(sprintf('Failed to write file "%s".', $filename), 0, null, $filename);
+            }
+
+            @chmod($tmpFile, file_exists($filename) ? fileperms($filename) : 0666 & ~umask());
+
+            $this->rename($tmpFile, $filename, true);
+        } finally {
+            if (file_exists($tmpFile)) {
+                @unlink($tmpFile);
+            }
         }
-
-        @chmod($tmpFile, file_exists($filename) ? fileperms($filename) : 0666 & ~umask());
-
-        $this->rename($tmpFile, $filename, true);
     }
 
     /**
@@ -715,10 +721,6 @@ class Filesystem
             $this->mkdir($dir);
         }
 
-        if (!is_writable($dir)) {
-            throw new IOException(sprintf('Unable to write to the "%s" directory.', $dir), 0, null, $dir);
-        }
-
         if (false === @file_put_contents($filename, $content, \FILE_APPEND)) {
             throw new IOException(sprintf('Failed to write file "%s".', $filename), 0, null, $filename);
         }
@@ -726,7 +728,7 @@ class Filesystem
 
     private function toIterable($files): iterable
     {
-        return \is_array($files) || $files instanceof \Traversable ? $files : [$files];
+        return is_iterable($files) ? $files : [$files];
     }
 
     /**
@@ -739,15 +741,26 @@ class Filesystem
         return 2 === \count($components) ? [$components[0], $components[1]] : [null, $components[0]];
     }
 
+    private static function assertFunctionExists(string $func): void
+    {
+        if (!\function_exists($func)) {
+            throw new IOException(sprintf('Unable to perform filesystem operation because the "%s()" function has been disabled.', $func));
+        }
+    }
+
     /**
+     * @param mixed ...$args
+     *
      * @return mixed
      */
-    private static function box(callable $func)
+    private static function box(string $func, ...$args)
     {
+        self::assertFunctionExists($func);
+
         self::$lastError = null;
         set_error_handler(__CLASS__.'::handleError');
         try {
-            $result = $func(...\array_slice(\func_get_args(), 1));
+            $result = $func(...$args);
             restore_error_handler();
 
             return $result;
@@ -761,7 +774,7 @@ class Filesystem
     /**
      * @internal
      */
-    public static function handleError($type, $msg)
+    public static function handleError(int $type, string $msg)
     {
         self::$lastError = $msg;
     }

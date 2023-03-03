@@ -24,15 +24,6 @@ abstract class AppController
     ];
 
     /**
-     * Index du site.
-     */
-    public static function index()
-    {
-        $page = new Page("Bienvenu sur " . APP_NAME, View::index(), APP_NAME . "est votre framework Web");
-        $page->show();
-    }
-
-    /**
      * Une sous-couche du routage qui permet de gérer le routage vers le bon controller
      * en fonction des paramêtres contenu dans l'URL.
      * 

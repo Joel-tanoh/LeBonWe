@@ -18,7 +18,9 @@ try {
 
     $router = new Router(trim($_SERVER["REQUEST_URI"], "/"));
 
-    $router->get("/", "App\Controller\AppController@index");
+    $router->get("/", "App\Controller\IndexController@index");
+    $router->get("/admin", "App\Controller\AdministrationController@index");
+    $router->get("/administration", "App\Controller\AdministrationController@index");
 
     $router->run();
   

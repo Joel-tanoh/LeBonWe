@@ -33,6 +33,8 @@ class FileUploaded extends File
     
     private $tmpName;
 
+    private $fileUploadedInfos;
+
     /**
      * Constructeur d'une image.
      * 
@@ -47,6 +49,18 @@ class FileUploaded extends File
         $this->size              = $fileUplaoded[$sizeKey];
         $this->name              = $this->fileUploadedInfos["filename"];
         $this->extension         = $this->fileUploadedInfos["extension"];
+    }
+
+    /**
+     * Permet de vérifier qu'un ou plusieurs fichiers ont été uploadés.
+     * 
+     * @param string $key La clé dans le tableau.
+     * 
+     * @return bool
+     */
+    public static function fileIsUploaded(string $key)
+    {
+        return !empty($_FILES[$key]["name"][0]);
     }
 
     /**

@@ -87,18 +87,18 @@ class Preloader
 
                 self::preloadType($m->getReturnType(), $preloaded);
             }
-        } catch (\ReflectionException $e) {
+        } catch (\Throwable $e) {
             // ignore missing classes
         }
     }
 
     private static function preloadType(?\ReflectionType $t, array &$preloaded): void
     {
-        if (!$t || $t->isBuiltin()) {
+        if (!$t) {
             return;
         }
 
-        foreach ($t instanceof \ReflectionUnionType ? $t->getTypes() : [$t] as $t) {
+        foreach (($t instanceof \ReflectionUnionType || $t instanceof \ReflectionIntersectionType) ? $t->getTypes() : [$t] as $t) {
             if (!$t->isBuiltin()) {
                 self::doPreload($t instanceof \ReflectionNamedType ? $t->getName() : $t, $preloaded);
             }

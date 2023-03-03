@@ -34,8 +34,8 @@ class Announce extends Post
     private $productImgPath;
     private $productImgSrc;
     private $productInfoImgSrc;
-    private $artInFooterImgPath;
-    private $artInFooterImgSrc;
+    private $productInfoImgPath;
+    private $userEmailAddress;
     const TABLE_NAME = "ind_announces";
     const IMG_DIR_PATH = Image::IMG_DIR_PATH . DIRECTORY_SEPARATOR . "productinfo" . DIRECTORY_SEPARATOR;
     const IMG_DIR_URL = Image::IMG_DIR_URL . "/productinfo";
@@ -92,9 +92,6 @@ class Announce extends Post
 
         $this->productInfoImgPath = Image::PRODUCT_INFO_DIR_PATH . $this->slug . Image::EXTENSION;
         $this->productInfoImgSrc = Image::PRODUCT_INFO_DIR_URL . "/" . $this->slug . Image::EXTENSION;
-
-        $this->artInFooterImgPath = Image::ART_IN_FOOTER_PATH . $this->slug . Image::EXTENSION;
-        $this->artInFooterImgSrc = Image::ART_IN_FOOTER_URL . "/" . $this->slug . Image::EXTENSION;
     }
 
     /**
@@ -241,19 +238,6 @@ class Announce extends Post
             return $this->productInfoImgSrc;
         else
             return Image::PRODUCT_INFO_DIR_URL . "/default-img" . Image::EXTENSION;
-    }
-
-    /**
-     * Retourne le lien de l'image dans le footer.
-     * 
-     * @return string
-     */
-    public function getArtInFooterImgSrc()
-    {
-        if (file_exists($this->artInFooterImgPath))
-            return $this->artInFooterImgSrc;
-        else 
-            return Image::ART_IN_FOOTER_URL . "/default-img" . Image::EXTENSION;
     }
 
     /**
@@ -1017,9 +1001,6 @@ class Announce extends Post
         // Product Img
         $image->rename($this->productImgPath, Image::PRODUCT_DIR_PATH . $newImgName . Image::EXTENSION);
 
-        // Art in Footer Img
-        $image->rename($this->artInFooterImgPath, Image::ART_IN_FOOTER_PATH . $newImgName . Image::EXTENSION);
-
         // ProductInfo Img
         for ($i = 0; $i < 3; $i++) {
             $image->rename(Image::PRODUCT_INFO_DIR_PATH . $this->slug ."-". $i . Image::EXTENSION , Image::PRODUCT_INFO_DIR_PATH . $newImgName ."-". $i . Image::EXTENSION);
@@ -1040,9 +1021,6 @@ class Announce extends Post
 
         // Product 640 x 420
         $image->delete($this->productImgPath);
-
-        // Art in Footer 240 x 200
-        $image->delete($this->artInFooterImgPath);
 
         // ProductInfo 625x415
         for ($i = 0; $i < 3; $i++) {

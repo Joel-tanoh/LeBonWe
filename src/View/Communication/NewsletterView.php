@@ -4,10 +4,10 @@ namespace App\View\Communication;
 
 use App\Communication\MailContentManager;
 use App\Communication\MailSender;
-use App\View\Form;
-use App\View\Snippet;
+use App\View\Component\Form;
+use App\View\Component;
 
-class NewsletterView extends Snippet
+class NewsletterView extends Component
 {
     /**
      * La section qui permet au visiteur de s'abonner à la newsletter.

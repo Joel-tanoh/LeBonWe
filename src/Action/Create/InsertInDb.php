@@ -2,12 +2,13 @@
 
 namespace App\Action\Create;
 
+use App\Action\Action;
 use Exception;
 
 /**
  * Classe de gestion des insertions de données.
  */
-class InsertInDb extends Create
+class InsertInDb extends Action
 {
     /**
      * Constructeur de l'action insert.

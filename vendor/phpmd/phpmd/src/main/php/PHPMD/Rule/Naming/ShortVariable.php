@@ -22,12 +22,13 @@ use PHPMD\AbstractRule;
 use PHPMD\Rule\ClassAware;
 use PHPMD\Rule\FunctionAware;
 use PHPMD\Rule\MethodAware;
+use PHPMD\Rule\TraitAware;
 
 /**
  * This rule class will detect variables, parameters and properties with short
  * names.
  */
-class ShortVariable extends AbstractRule implements ClassAware, MethodAware, FunctionAware
+class ShortVariable extends AbstractRule implements ClassAware, MethodAware, FunctionAware, TraitAware
 {
     /**
      * Temporary map holding variables that were already processed in the
@@ -96,7 +97,7 @@ class ShortVariable extends AbstractRule implements ClassAware, MethodAware, Fun
             $this->checkNodeImage($declarator);
         }
 
-        $variables = $node->findChildrenOfType('Variable');
+        $variables = $node->findChildrenOfTypeVariable();
         foreach ($variables as $variable) {
             $this->checkNodeImage($variable);
         }
@@ -171,7 +172,9 @@ class ShortVariable extends AbstractRule implements ClassAware, MethodAware, Fun
      */
     protected function isNameAllowedInContext(AbstractNode $node)
     {
-        if ($this->isChildOf($node, 'ForeachStatement')) {
+        $parent = $node->getParent();
+
+        if ($parent && $parent->isInstanceOf('ForeachStatement')) {
             return $this->isInitializedInLoop($node);
         }
 

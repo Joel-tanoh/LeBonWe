@@ -16,12 +16,9 @@
 namespace App\View\Page;
 
 use App\File\Image\Logo;
-use App\View\Page\Snippet\CSS;
+use App\View\Component\CSS;
 use App\View\View;
-use App\View\Page\Template;
-use App\View\Page\Snippet\Navbar\Navbar;
-use App\View\Page\Snippet\Footer\Footer;
-use App\View\Page\Snippet\JS;
+use App\View\Component\JS;
 
 /**
  * Classe qui gère tout ce qui est en rapport à une page.
@@ -40,32 +37,27 @@ class Page extends View
     private $description;
     private $cssFiles = [];
     private $jsFiles = [];
-    private $navbarState;
-    private $footerState;
 
     /**
      * @param string   $metaTitle   Le titre qui sera affiché dans la page.
      * @param string   $view        La vue à afficher.
      * @param string   $description La description de la page qui est affichée dans les données métas.
+     *                              Cette donnée aide pour le référencement.
      * @param string[] $cssFiles    Un tableau contenant les chemins des fichiers css.
      * @param string[] $jsFiles     Un tableau contenant les chemins des fichiers css.
      * @param boolean  $navbarState Permet d'afficher la barre de navigation Top.
      * @param boolean  $footerState Permet d'afficher le pied de page.
      */
     public function __construct(
-        string $metaTitle = null,
-        string $view = null,
-        string $description = null,
-        array $cssFiles = null, 
-        array $jsFiles = null,
-        bool $navbarState = true, 
-        bool $footerState = true
+        string $metaTitle,
+        string $view,
+        string $description,
+        array $cssFiles = [], 
+        array $jsFiles = []
     ) {
         $this->metaTitle = $metaTitle;
-        $this->description = $description;
         $this->view = $view;
-        $this->navbarState = $navbarState;
-        $this->footerState = $footerState;
+        $this->description = $description;
         $this->cssFiles = $cssFiles;
         $this->jsFiles = $jsFiles;
     }
@@ -82,41 +74,11 @@ class Page extends View
             {$this->getCssTags()}
         </head>
         <body>
-            {$this->template()}
+            {$this->view}
             {$this->getJsTag()}
         </body>
         </html>
 HTML;
-    }
-
-    /**
-     * Template
-     * 
-     * @return string
-     */
-    private function template()
-    {
-        $navbar = new Navbar();
-        $footer = new Footer();
-        $template = new Template();
-
-        if ($this->navbarState && $this->footerState) {
-            return $template->navbarAndContentAndFooter(
-                $navbar->getBootstrapNavbar(), $this->view, $footer->get()
-            );
-        }
-        
-        elseif ($this->navbarState && !$this->footerState) {
-            return $template->navbarAndContent($navbar->getBootstrapNavbar(), $this->view);
-        }
-        
-        elseif (!$this->navbarState && $this->footerState) {
-            return $template->contentAndFooter($this->view, $footer->get());
-        }
-        
-        else {
-            return $this->view;
-        }
     }
 
     /**
@@ -154,27 +116,44 @@ HTML;
     {
         $this->view = $view;
     }
-
+    
     /**
-     * Permet de spécifier si l'on veut voir la navbar sur la page.
+     * Retourne le code pour les icones.
      * 
-     * @param bool $navbarState True si on veut que la navbar apparaisse sur la page,
-     *                          False sinon.
+     * @return string
      */
-    public function setNavbar(bool $navbarState)
+    public function setFavicon(string $logosDir = Logo::LOGOS_DIR_URL)
     {
-        $this->navbarState = $navbarState;
+        return <<<HTML
+        <link rel="icon" href="{$logosDir}/faviconx2.png" type="image/png">
+        <link rel="shortcut icon" href="{$logosDir}/faviconx2.png" type="image/png">
+HTML;
     }
 
     /**
-     * Permet de spécifier si l'on veut voir le footer sur la page.
+     * Permet d'ajouter un fichier css à la page.
      * 
-     * @param bool $navbarState true si on veut que le footer apparaisse sur la page,
-     *                          false sinon.
+     * @param $cssFile L'url du fichier Css.
      */
-    public function setFooter(bool $footerState)
+    public function addCss(string $href)
     {
-        $this->footerState = $footerState;
+        $this->cssFiles[] = [
+            "href" => $href
+        ];
+    }
+
+    /**
+     * Permet d'ajouter un fichier js à cette page.
+     * 
+     * @param string $jsFileUrl L'url du fichier Js.
+     * @param string $async     Pour dire si le fichier est uploadé de façon asynchrone ou pas.
+     */
+    public function addJs(string $src, string $async = null)
+    {
+        $this->jsFiles[] = [
+            "src" => $src,
+            "async" => $async,
+        ];
     }
 
     /**
@@ -197,8 +176,10 @@ HTML;
      * 
      * @return string
      */
-    private function metaData(string $base = APP_URL)
+    private function metaData()
     {
+        $base = APP_URL;
+
         return <<<HTML
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -206,20 +187,7 @@ HTML;
         <meta name="description" content="{$this->description}">
         <base href="{$base}">
         <title>{$this->metaTitle}</title>
-        {$this->favicon()}
-HTML;
-    }
-    
-    /**
-     * Retourne le code pour les icones.
-     * 
-     * @return string
-     */
-    private function favicon(string $logosDir = Logo::LOGOS_DIR_URL)
-    {
-        return <<<HTML
-        <link rel="icon" href="{$logosDir}/faviconx2.png" type="image/png">
-        <link rel="shortcut icon" href="{$logosDir}/faviconx2.png" type="image/png">
+        {$this->setFavicon()}
 HTML;
     }
 
@@ -268,10 +236,11 @@ HTML;
      */
     private function cssFiles()
     {
-        // // Bootstrap CSS
-        // $this->addCss("https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css");
-        // // Fontawesome
-        // $this->addCss("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css");
+        // Bootstrap CSS
+        $this->addCss("https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css");
+        // Fontawesome
+        $this->addCss("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css");
+        
         // // Summernote
         // $this->addCss("https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote.min.css");
         // // Icon
@@ -294,37 +263,12 @@ HTML;
         $this->addJs("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/js/all.min.js");    
         // // Bootstrap
         $this->addJs("https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js");       
+        
         // // Summernote
-        // $this->addJs("https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote.min.js");
-        // $this->addJs("https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/lang/summernote-fr-FR.min.js"); 
+        // JS::addJs("https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote.min.js");
+        // JS::addJs("https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/lang/summernote-fr-FR.min.js"); 
         // Main Js
-        // $this->addJs(ASSETS_DIR_URL."/js/main.js");
-    }
-
-    /**
-     * Permet d'ajouter un fichier css à cette page.
-     * 
-     * @param $cssFile L'url du fichier Css.
-     */
-    public function addCss(string $href)
-    {
-        $this->cssFiles[] = [
-            "href" => $href
-        ];
-    }
-
-    /**
-     * Permet d'ajouter un fichier js à cette page.
-     * 
-     * @param string $jsFileUrl L'url du fichier Js.
-     * @param string $async     Pour dire si le fichier est uploadé de façon asynchrone ou pas.
-     */
-    public function addJs(string $src, string $async = null)
-    {
-        $this->jsFiles[] = [
-            "src" => $src,
-            "async" => $async,
-        ];
+        // JS::addJs(ASSETS_DIR_URL."/js/main.js");
     }
 
 }

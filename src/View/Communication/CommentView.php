@@ -2,7 +2,7 @@
 
 namespace App\View\Communication;
 
-use App\View\Form;
+use App\View\Component\Form;
 
 /** Classe gestionnaire des vues relatives aux commentaires */
 class CommentView

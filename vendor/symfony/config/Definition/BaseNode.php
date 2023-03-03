@@ -24,7 +24,7 @@ use Symfony\Component\Config\Definition\Exception\UnsetKeyException;
  */
 abstract class BaseNode implements NodeInterface
 {
-    const DEFAULT_PATH_SEPARATOR = '.';
+    public const DEFAULT_PATH_SEPARATOR = '.';
 
     private static $placeholderUniquePrefixes = [];
     private static $placeholders = [];
@@ -47,7 +47,7 @@ abstract class BaseNode implements NodeInterface
      */
     public function __construct(?string $name, NodeInterface $parent = null, string $pathSeparator = self::DEFAULT_PATH_SEPARATOR)
     {
-        if (false !== strpos($name = (string) $name, $pathSeparator)) {
+        if (str_contains($name = (string) $name, $pathSeparator)) {
             throw new \InvalidArgumentException('The name must not contain ".'.$pathSeparator.'".');
         }
 
@@ -112,7 +112,7 @@ abstract class BaseNode implements NodeInterface
      */
     public function getAttribute($key, $default = null)
     {
-        return isset($this->attributes[$key]) ? $this->attributes[$key] : $default;
+        return $this->attributes[$key] ?? $default;
     }
 
     /**
@@ -514,7 +514,7 @@ abstract class BaseNode implements NodeInterface
             }
 
             foreach (self::$placeholderUniquePrefixes as $placeholderUniquePrefix) {
-                if (0 === strpos($value, $placeholderUniquePrefix)) {
+                if (str_starts_with($value, $placeholderUniquePrefix)) {
                     return [];
                 }
             }
