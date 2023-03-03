@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\View\Component\Navbar\Navbar;
 use App\View\Page\Page;
 use App\View\View;
 
