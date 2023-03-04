@@ -54,7 +54,7 @@ class BootstrapNavbar extends Navbar
         return <<<HTML
         <header id="header-wrap">
             <nav class="navbar navbar-expand-lg fixed-top scrolling-navbar top-nav-collapse">
-                <div class="container">
+                <div class="container border">
                     {$this->navbarHeader()}
                     <div class="collapse navbar-collapse" id="main-navbar">
                     </div>

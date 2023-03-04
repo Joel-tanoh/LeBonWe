@@ -25,7 +25,7 @@ class View
 
         return <<<HTML
         {$navbar->getBootstrapNavbar()}
-        <div class="container">Bienvenu sur {$appName}</div>
+        
         {$footer->getFooter()}
 HTML;
     }

@@ -35,7 +35,6 @@ class Footer extends Component
     public function getFooter() : string
     {
         return <<<HTML
-        <footer>Pied de page</footer>
 HTML;
     }
 
